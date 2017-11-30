@@ -1,0 +1,1 @@
+do local _=1;return _;end

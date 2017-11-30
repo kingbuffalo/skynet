@@ -1,0 +1,1 @@
+do local _={[25000001]={{weight=100,out_res={{1,10010001,100}},idx=1,lottery_id=25000001}}};return _;end

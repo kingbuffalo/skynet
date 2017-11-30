@@ -1,0 +1,1 @@
+do local _={{type=1,speed=50},{type=2,speed=70},{type=3,speed=60},{type=4,speed=40}};return _;end

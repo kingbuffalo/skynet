@@ -1,0 +1,1 @@
+do local _={[20000001]={out_res={{1,10010001,100}},gift_id=20000001}};return _;end

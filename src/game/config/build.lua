@@ -1,0 +1,1 @@
+do local _={{name="市场",build_id=1,icon="bi001"},{name="农场",build_id=2,icon="bi002"},{name="居民",build_id=3,icon="bi003"},{name="募军处",build_id=4,icon="bi004"},{name="兵营",build_id=5,icon="bi005"},{name="枪械厂",build_id=6,icon="bi006"},{name="盾械厂",build_id=7,icon="bi007"},{name="弓械厂",build_id=8,icon="bi008"},{name="马厩",build_id=9,icon="bi009"}};return _;end

@@ -1,0 +1,1 @@
+do local _={cmd_login_0={regex2=0,regex3=0,value="登陆成功",regex7=0,regex=0,key="cmd_login_0",regex1=0,regex6=0,regex5=0,showtype=2,regex4=0}};return _;end
