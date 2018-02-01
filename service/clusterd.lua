@@ -14,7 +14,18 @@ local function read_response(sock)
 	return cluster.unpackresponse(msg)	-- session, ok, data, padding
 end
 
+local connecting = {}
+
 local function open_channel(t, key)
+	local ct = connecting[key]
+	if ct then
+		local co = coroutine.running()
+		table.insert(ct, co)
+		skynet.wait(co)
+		return assert(ct.channel)
+	end
+	ct = {}
+	connecting[key] = ct
 	local host, port = string.match(node_address[key], "([^:]+):(.*)$")
 	local c = sc.channel {
 		host = host,
@@ -22,8 +33,16 @@ local function open_channel(t, key)
 		response = read_response,
 		nodelay = true,
 	}
-	assert(c:connect(true))
-	t[key] = c
+	local succ, err = pcall(c.connect, c, true)
+	if succ then
+		t[key] = c
+		ct.channel = c
+	end
+	connecting[key] = nil
+	for _, co in ipairs(ct) do
+		skynet.wakeup(co)
+	end
+	assert(succ, err)
 	return c
 end
 
@@ -138,18 +157,26 @@ function command.socket(source, subcmd, fd, msg)
 		local sz
 		local addr, session, msg, padding, is_push = cluster.unpackrequest(msg)
 		if padding then
-			local req = large_request[session] or { addr = addr , is_push = is_push }
-			large_request[session] = req
+			local requests = large_request[fd]
+			if requests == nil then
+				requests = {}
+				large_request[fd] = requests
+			end
+			local req = requests[session] or { addr = addr , is_push = is_push }
+			requests[session] = req
 			table.insert(req, msg)
 			return
 		else
-			local req = large_request[session]
-			if req then
-				large_request[session] = nil
-				table.insert(req, msg)
-				msg,sz = cluster.concat(req)
-				addr = req.addr
-				is_push = req.is_push
+			local requests = large_request[fd]
+			if requests then
+				local req = requests[session]
+				if req then
+					requests[session] = nil
+					table.insert(req, msg)
+					msg,sz = cluster.concat(req)
+					addr = req.addr
+					is_push = req.is_push
+				end
 			end
 			if not msg then
 				local response = cluster.packresponse(session, false, "Invalid large req")
@@ -191,8 +218,8 @@ function command.socket(source, subcmd, fd, msg)
 		skynet.error(string.format("socket accept from %s", msg))
 		skynet.call(source, "lua", "accept", fd)
 	else
-		large_request = {}
-		skynet.error(string.format("socket %s %d : %s", subcmd, fd, msg))
+		large_request[fd] = nil
+		skynet.error(string.format("socket %s %d %s", subcmd, fd, msg or ""))
 	end
 end
 

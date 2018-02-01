@@ -17,6 +17,10 @@ function handler.open(source, conf)
 	watchdog = conf.watchdog or source
 end
 
+function handler.close()
+	
+end
+
 function handler.message(fd, msg, sz)
 	-- recv a package, forward it
 	local c = connection[fd]

@@ -164,7 +164,7 @@ local function _recv_packet(self,sock)
         typ = "ERR"
     elseif field_count == 0xfe then
         typ = "EOF"
-    elseif field_count <= 250 then
+    else
         typ = "DATA"
     end
 
@@ -648,8 +648,6 @@ function _M.connect(opts)
 
     return self
 end
-
-
 
 function _M.disconnect(self)
     self.sockchannel:close()

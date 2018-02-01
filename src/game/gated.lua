@@ -62,7 +62,7 @@ skynet.start(function()
 		local s_crc32 = boylib.crc32(cmdBinStr)
 		local c_crc32int = readCrc32(c_crc32)
 		local s_crc32int = readCrc32(s_crc32)
-		local msg,len= "unVaild data",14
+		local msg,_= "unVaild data",14
 		if c_crc32int == s_crc32int then
 			msg = skynet.call(cmdsmgr, "lua","recCmd", cmdBinStr,addr)
 		end

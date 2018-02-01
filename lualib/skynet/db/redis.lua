@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 local socketchannel = require "skynet.socketchannel"
+local bson = require("bson")
 
 local table = table
 local string = string
@@ -162,9 +163,31 @@ setmetatable(command, { __index = function(t,k)
 	return f
 end})
 
+local function read_bson_response(so)
+	local ok, result = read_response(so)
+	local v
+	if ok then
+		v = bson.decode(result)
+	end
+	return ok, v
+end
+
 local function read_boolean(so)
 	local ok, result = read_response(so)
 	return ok, result ~= 0
+end
+
+function command:bson_set(key,v)
+	local fd = self[1]
+	v = bson.encode(v)
+	v = tostring(v)
+	return fd:request(compose_message ("set", {key,v}),read_response)
+end
+
+function command:bson_get(key)
+	local fd = self[1]
+	local v = fd:request(compose_message ("get", key),read_bson_response)
+	return v
 end
 
 function command:exists(key)

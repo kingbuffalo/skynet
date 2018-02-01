@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "atomic.h"
 
 #define DEFAULT_CAP 64
@@ -454,10 +455,22 @@ pack_dict_data(lua_State *L, struct bson *b, int depth, int kt) {
 	size_t sz;
 	switch(kt) {
 	case LUA_TNUMBER:
-		luaL_error(L, "Bson dictionary's key can't be number");
+		/*luaL_error(L, "Bson dictionary's key can't be number");*///原来的代码
+		//add begin
+		lua_pushvalue(L,-2);
+		lua_insert(L,-2);
+		key = lua_tolstring(L,-2,&sz);
+		append_one(b,L,key,sz,depth);
+		lua_pop(L,2);
+		//add begin
 		break;
 	case LUA_TSTRING:
 		key = lua_tolstring(L,-2,&sz);
+		//add begin
+		if(isdigit(key[0])){
+			luaL_error(L, "Bson dictionary's key can't be string that the number is at the begining");
+		}
+		//add begin
 		append_one(b, L, key, sz, depth);
 		lua_pop(L,1);
 		break;
@@ -612,7 +625,15 @@ unpack_dict(lua_State *L, struct bson_reader *br, bool array) {
 			int id = strtol(key, NULL, 10) + 1;
 			lua_pushinteger(L,id);
 		} else {
-			lua_pushlstring(L, key, klen);
+			//将key为数字的改为数字的 begin
+			if(isdigit(key[0])){
+				int id = strtol(key, NULL, 10);
+				lua_pushinteger(L,id);
+			}else{
+				lua_pushlstring(L, key, klen);
+			}
+			//将key为数字的改为数字的 end
+			/*lua_pushlstring(L, key, klen);*/ //原来的代码
 		}
 		switch (bt) {
 		case BSON_REAL:
@@ -906,6 +927,9 @@ static int
 ldecode(lua_State *L) {
 	const int32_t * data = lua_touserdata(L,1);
 	if (data == NULL) {
+		data = (const int32_t*)lua_tostring(L,1);
+	}
+	if ( data == NULL ){
 		return 0;
 	}
 	const uint8_t * b = (const uint8_t *)data;
