@@ -1,0 +1,14 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+callRedis	redis_util.lua	/^function M.callRedis(probufName,cmd,...)$/;"	f
+callRedisJson	redis_util.lua	/^function M.callRedisJson(probufName,cmd,...)$/;"	f
+callSetAndGetCmd	redis_util.lua	/^local function callSetAndGetCmd(redisd,probufName,cmd,...)$/;"	f
+callSetAndGetCmdBson	redis_util.lua	/^local function callSetAndGetCmdBson(redisd,probufName,cmd,...)$/;"	f
+callSetAndGetCmdJson	redis_util.lua	/^local function callSetAndGetCmdJson(redisd,probufName,cmd,...)$/;"	f
+cmpT	redis_util.lua	/^--local function cmpT(t1,t2)$/;"	f
+sendRedis	redis_util.lua	/^function M.sendRedis(probufName,cmd,...)$/;"	f
+sendSetAndGetCmd	redis_util.lua	/^local function sendSetAndGetCmd(redisd,probufName,cmd,...)$/;"	f
