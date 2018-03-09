@@ -1,3 +1,4 @@
+require "skynet.manager"
 local skynet = require "skynet"
 
 local httpHandle,gateToGameHandle = ...
