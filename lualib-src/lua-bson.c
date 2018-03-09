@@ -924,12 +924,27 @@ lreplace(lua_State *L) {
 }
 
 static int
-ldecode(lua_State *L) {
+ldecodestr(lua_State *L) {
 	const int32_t * data = lua_touserdata(L,1);
 	if (data == NULL) {
 		data = (const int32_t*)lua_tostring(L,1);
+		if ( data == NULL ){
+			return 0;
+		}
 	}
-	if ( data == NULL ){
+	const uint8_t * b = (const uint8_t *)data;
+	int32_t len = get_length(b);
+	struct bson_reader br = { b , len };
+
+	unpack_dict(L, &br, false);
+
+	return 1;
+}
+
+static int
+ldecode(lua_State *L) {
+	const int32_t * data = lua_touserdata(L,1);
+	if (data == NULL) {
 		return 0;
 	}
 	const uint8_t * b = (const uint8_t *)data;
@@ -1330,6 +1345,7 @@ luaopen_bson(lua_State *L) {
 		{ "binary", lbinary },
 		{ "objectid", lobjectid },
 		{ "decode", ldecode },
+		{ "decodestr", ldecodestr },
 		{ NULL,  NULL },
 	};
 

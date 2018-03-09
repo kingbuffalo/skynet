@@ -15,21 +15,21 @@ struct node{
 	char c;
 };
 
-void printEmpty(int emptyCount){
-	for (int i = 0; i <emptyCount; i++) {
-		std::cout << ' ';
-	}
-}
-void __printNode(const struct node *n,int emptyCount){
-	for (auto it=n->m.begin(); it != n->m.end(); it++ ) {
-		printEmpty(emptyCount);
-		std::cout << emptyCount << "->" << it->second->c << std::endl;
-		__printNode(it->second, emptyCount+1);
-	}
-}
-void printNode(const struct node *n){
-	__printNode(n,1);
-}
+//void printEmpty(int emptyCount){
+	//for (int i = 0; i <emptyCount; i++) {
+		//std::cout << ' ';
+	//}
+//}
+//void __printNode(const struct node *n,int emptyCount){
+	//for (auto it=n->m.begin(); it != n->m.end(); it++ ) {
+		//printEmpty(emptyCount);
+		//std::cout << emptyCount << "->" << it->second->c << std::endl;
+		//__printNode(it->second, emptyCount+1);
+	//}
+//}
+//void printNode(const struct node *n){
+	//__printNode(n,1);
+//}
 
 extern "C" void addkeyword(struct node *rootNode,const char* szStr){
 	int l = strlen(szStr);
