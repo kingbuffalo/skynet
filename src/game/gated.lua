@@ -40,9 +40,9 @@ skynet.start(function()
 	local function logfunc()
 		local str = os.date() .. "-----------------------"
 		skynet.error(str)
-		skynet.timeout(30*100,logfunc)
+		skynet.timeout(60*100,logfunc)
 	end
-	skynet.timeout(30*100,logfunc)
+	skynet.timeout(60*100,logfunc)
 
 	local id = socket.listen(host, port)
 	socket.start(id , function(fd, addr)
