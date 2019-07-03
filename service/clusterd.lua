@@ -11,8 +11,6 @@ local nodename = cluster.nodename()
 
 local connecting = {}
 
-local connecting = {}
-
 local function open_channel(t, key)
 	local ct = connecting[key]
 	if ct then
@@ -204,6 +202,7 @@ function command.socket(source, subcmd, fd, msg)
 		else
 			skynet.error(string.format("socket %s %d %s", subcmd, fd, msg or ""))
 		end
+	end
 end
 
 skynet.start(function()
