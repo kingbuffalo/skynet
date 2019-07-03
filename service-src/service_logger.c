@@ -51,32 +51,38 @@ logger_cb(struct skynet_context * context, void *ud, int type, int session, uint
 	double dt = difftime(seconds,inst->today0hour);
 	FILE * nhandle;
 	switch (type) {
-	case PTYPE_SYSTEM:
-		if (inst->filename) {
-			inst->handle = freopen(inst->filename, "a", inst->handle);
-		}
-		break;
-	case PTYPE_TEXT:
-		if (dt > SECONDS_ONE_DAY ){
-			char fn[256] = {0};
-			sprintf(fn,"%s_%d-%02d-%02d.log",inst->origFn,(1900+timenow.tm_year),(timenow.tm_mon+1),timenow.tm_mday);
-			nhandle = fopen(fn,"a");
-			if (nhandle != NULL) {
-				inst->today0hour += SECONDS_ONE_DAY;
-				fclose(inst->handle);
-				inst->handle = NULL;
-				inst->handle = nhandle;
-				strcpy(inst->filename,fn);
+		case PTYPE_SYSTEM:
+			if (inst->filename) {
+				inst->handle = freopen(inst->filename, "a", inst->handle);
 			}
-		}
-		if (inst->handle != NULL) {
-			fprintf(inst->handle, "%02d:%02d:%02d",timenow.tm_hour,timenow.tm_min,timenow.tm_sec);
-			fprintf(inst->handle, " [%x] ",source);
-			fwrite(msg, sz , 1, inst->handle);
-			fprintf(inst->handle, "\n");
-			fflush(inst->handle);
-		}
-		break;
+			break;
+		case PTYPE_RESPONSE:
+			//TODO change filename
+			break;
+		case PTYPE_LUA:
+			//TODO add delay
+			break;
+		case PTYPE_TEXT:
+			if (dt > SECONDS_ONE_DAY ){
+				char fn[256] = {0};
+				sprintf(fn,"%s_%d-%02d-%02d.log",inst->origFn,(1900+timenow.tm_year),(timenow.tm_mon+1),timenow.tm_mday);
+				nhandle = fopen(fn,"a");
+				if (nhandle != NULL) {
+					inst->today0hour += SECONDS_ONE_DAY;
+					fclose(inst->handle);
+					inst->handle = NULL;
+					inst->handle = nhandle;
+					strcpy(inst->filename,fn);
+				}
+			}
+			if (inst->handle != NULL) {
+				fprintf(inst->handle, "%02d:%02d:%02d",timenow.tm_hour,timenow.tm_min,timenow.tm_sec);
+				fprintf(inst->handle, " [%x] ",source);
+				fwrite(msg, sz , 1, inst->handle);
+				fprintf(inst->handle, "\n");
+				fflush(inst->handle);
+			}
+			break;
 	}
 	return 0;
 }
