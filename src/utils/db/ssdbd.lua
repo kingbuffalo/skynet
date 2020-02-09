@@ -3,7 +3,7 @@ require ("skynet.manager")
 local ssdb = require "skynet.db.ssdb"
 
 local db
-local conf = { host = "192.168.0.197", port = 6668 , auth = "kingbuffalo" }
+local conf = { host = "127.0.0.1", port = 8888, auth = "kingbuffalo" }
 
 local SERVICENAME = "SSDB"
 

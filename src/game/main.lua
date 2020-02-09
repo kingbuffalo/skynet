@@ -11,9 +11,11 @@ skynet.start(function()
 	skynet.error("Server start")
 
 	local port = skynet.getenv("port")
-	skynet.uniqueservice("game/gated",port)
+	--skynet.uniqueservice("game/gated",port)
+	skynet.uniqueservice("game/udpd")
 	skynet.uniqueservice("utils/db/ssdbd")
 	skynet.newservice("debug_console",8000)
+	--skynet.newservice("game/kcplibtest")
 
 	--local configMgr = require("game.config.configMgr")
 	--configMgr.init()

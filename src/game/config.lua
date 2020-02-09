@@ -8,7 +8,7 @@ snax = root.."src/?.lua;"
 
 -- preload = "./examples/preload.lua"	-- run preload.lua before every lua service run
 thread = 8
-logger = nil
+logger = "game.log"
 logpath = "."
 harbor = 0
 port=7759

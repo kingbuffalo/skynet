@@ -1,5 +1,6 @@
 *.o
 *.a
+jemalloc
 /skynet
 /skynet.pid
 3rd/lua/lua

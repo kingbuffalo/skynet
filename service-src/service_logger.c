@@ -59,9 +59,9 @@ logger_cb(struct skynet_context * context, void *ud, int type, int session, uint
 		case PTYPE_RESPONSE:
 			//TODO change filename
 			break;
-		case PTYPE_LUA:
-			//TODO add delay
-			break;
+			/*case PTYPE_LUA:*/
+			/*//TODO add delay*/
+			/*break;*/
 		case PTYPE_TEXT:
 			if (dt > SECONDS_ONE_DAY ){
 				char fn[256] = {0};
