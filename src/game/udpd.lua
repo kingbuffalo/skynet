@@ -8,6 +8,7 @@ skynet.start(function()
 	local udpSvr = "0.0.0.0"
 	local fromMapKcp = {}
 	skynet.error(udpSvr)
+	local sp = sprotoloader.load(1)
 
 	local function getKcp(from,host)
 		local kcp = fromMapKcp[from] 
@@ -30,6 +31,10 @@ skynet.start(function()
 					skynet.sleep(1)
 					hrlen, hr = kcp:lkcp_recv()
 					if hrlen > 0 then
+						local b1,b2 = string.byte(hr,1,2)
+						local sprotoId = (b1 << 8) | b2
+						local protostr = protoT(sprotoId)
+						local protoVO = sp:pdecode(protostr,string.sub(hr,3,#hr))
 						skynet.error("rec",hr)
 						kcp:lkcp_send(hr)
 					end

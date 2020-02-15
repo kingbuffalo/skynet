@@ -1,0 +1,30 @@
+20:44:33 [2] LAUNCH snlua bootstrap
+20:44:33 [3] LAUNCH snlua launcher
+20:44:33 [4] LAUNCH snlua cdummy
+20:44:33 [5] LAUNCH harbor 0 4
+20:44:33 [6] LAUNCH snlua datacenterd
+20:44:33 [7] LAUNCH snlua service_mgr
+20:44:33 [8] LAUNCH snlua game/main
+20:44:33 [8] Server start
+20:44:33 [9] LAUNCH snlua game/udpd
+20:44:33 [9] 0.0.0.0
+20:44:33 [a] LAUNCH snlua utils/db/ssdbd
+20:44:33 [b] LAUNCH snlua debug_console 8000
+20:44:33 [b] Start debug console at 127.0.0.1:8000
+20:44:33 [8] KILL self
+20:44:33 [2] KILL self
+22:19:50 [2] LAUNCH snlua bootstrap
+22:19:50 [3] LAUNCH snlua launcher
+22:19:50 [4] LAUNCH snlua cdummy
+22:19:50 [5] LAUNCH harbor 0 4
+22:19:50 [6] LAUNCH snlua datacenterd
+22:19:50 [7] LAUNCH snlua service_mgr
+22:19:50 [8] LAUNCH snlua game/main
+22:19:50 [8] Server start
+22:19:50 [9] LAUNCH snlua game/udpd
+22:19:50 [9] 0.0.0.0
+22:19:50 [a] LAUNCH snlua utils/db/ssdbd
+22:19:50 [b] LAUNCH snlua debug_console 8000
+22:19:50 [b] Start debug console at 127.0.0.1:8000
+22:19:50 [8] KILL self
+22:19:50 [2] KILL self
