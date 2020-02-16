@@ -1,8 +1,11 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 local LKcp = require "lkcp"
+local protoT = require "game/sprotocfg/protoT"
+local sprotoloader = require "sprotoloader"
 
 skynet.start(function()
+
     local session = 1048
 	local host
 	local udpSvr = "0.0.0.0"
@@ -26,20 +29,6 @@ skynet.start(function()
 					kcp:lkcp_update(current)
 				end
 			end)
-			skynet.fork(function()
-				while 1 do
-					skynet.sleep(1)
-					hrlen, hr = kcp:lkcp_recv()
-					if hrlen > 0 then
-						local b1,b2 = string.byte(hr,1,2)
-						local sprotoId = (b1 << 8) | b2
-						local protostr = protoT(sprotoId)
-						local protoVO = sp:pdecode(protostr,string.sub(hr,3,#hr))
-						skynet.error("rec",hr)
-						kcp:lkcp_send(hr)
-					end
-				end
-			end)
 		end
 		return kcp
 	end
@@ -47,5 +36,16 @@ skynet.start(function()
 	host = socket.udp(function(str, from)
 		local kcp = getKcp(from,host)
 		kcp:lkcp_input(str)
+
+		hrlen, hr = kcp:lkcp_recv()
+		if hrlen > 0 then
+			local b1,b2 = string.byte(hr,1,2)
+			local sprotoId = (b1 << 8) | b2
+			local protostr = protoT[sprotoId]
+			if protostr ~= nil then
+				local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
+				skynet.error("xxxx--->",protostr,protoVO.name,protoVO.passwd)
+			end
+		end
 	end , udpSvr, 8765)	-- bind an address
 end)
