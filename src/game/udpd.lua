@@ -3,6 +3,13 @@ local socket = require "skynet.socket"
 local LKcp = require "lkcp"
 local protoT = require "game/sprotocfg/protoT"
 local sprotoloader = require "sprotoloader"
+local hostMapPid = {}
+
+--TODO 
+--1. balance
+--2. heart beat
+--3. close while not respond
+--4. session
 
 skynet.start(function()
 
@@ -30,11 +37,12 @@ skynet.start(function()
 				end
 			end)
 		end
-		return kcp
+		local pid = hostMapPid[host] or 0
+		return kcp,pid
 	end
 
 	host = socket.udp(function(str, from)
-		local kcp = getKcp(from,host)
+		local kcp,pid = getKcp(from,host)
 		kcp:lkcp_input(str)
 
 		hrlen, hr = kcp:lkcp_recv()
@@ -44,6 +52,23 @@ skynet.start(function()
 			local protostr = protoT[sprotoId]
 			if protostr ~= nil then
 				local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
+				local protoM = require("game/xyycmd/cmd_"..protostr)
+				local errInt,retProtoId,retP = protoM.recCmd(protoVO)
+				local retProtoName = protoT[retProtoId]
+				local msg
+				if errInt == 0 then
+					msg = sp:encode(retProtoName,retP)
+				else
+					retProtoId = 30001
+					msg = sp:encode("ErrorR",{code=errInt})
+				end
+				local rb1 = (retProtoId >> 8 )& 0xff
+				local rb2 = (retProtoId )& 0xff
+				local retStr = string.char(rb1,rb2)
+				retStr = retStr.. msg
+				kcp:lkcp_send(retStr)
+
+
 				skynet.error("xxxx--->",protostr,protoVO.name,protoVO.passwd)
 			end
 		end
