@@ -52,7 +52,7 @@ skynet.start(function()
 			local protostr = protoT[sprotoId]
 			if protostr ~= nil then
 				local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
-				local protoM = require("game/xyycmd/cmd_"..protostr)
+				local protoM = require("game/cmd/cmd_"..protostr)
 				local errInt,retProtoId,retP = protoM.recCmd(protoVO)
 				local retProtoName = protoT[retProtoId]
 				local msg
