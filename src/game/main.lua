@@ -36,8 +36,6 @@ skynet.start(function()
 	--local configMgr = require("game.config.configMgr")
 	--configMgr.init()
 	--
-	local tblcfg = require("game.tblcfg")
-	tblcfg.genClassTag()
 
 	skynet.exit()
 end)
