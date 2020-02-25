@@ -9,9 +9,9 @@ local fromMapKcp = {}
 
 local function getKcp(from,host)
     local session = 1048
-	local kcp = fromMapKcp[from] 
+	local kcp = fromMapKcp[from]
 	if kcp == nil then
-		kcp = LKcp.lkcp_create(session, function (buf) 
+		kcp = LKcp.lkcp_create(session, function (buf)
 			socket.sendto(host, from, buf)
 		end)
 		kcp:lkcp_wndsize(128, 128)
@@ -38,7 +38,7 @@ skynet.start(function()
 		local kcp,pid = getKcp(from,host)
 		kcp:lkcp_input(strData)
 
-		hrlen, hr = kcp:lkcp_recv()
+		local hrlen, hr = kcp:lkcp_recv()
 		if hrlen > 0 then
 			local b1,b2 = string.byte(hr,1,2)
 			local sprotoId = (b1 << 8) | b2
@@ -46,7 +46,7 @@ skynet.start(function()
 			if protostr ~= nil then
 				local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
 				local protoM = require("game/cmd/cmd_"..protostr)
-				local errInt,retProtoId,retP = protoM.recCmd(protoVO)
+				local errInt,retProtoId,retP = protoM.recCmd(protoVO,pid)
 				local retProtoName = protoT[retProtoId]
 				local msg
 				if errInt == 0 then
