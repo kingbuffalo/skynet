@@ -3,11 +3,18 @@ local socket = require "skynet.socket"
 local LKcp = require "lkcp"
 local protoT = require "game/sprotocfg/protoT"
 local sprotoloader = require "sprotoloader"
-local hostMapPid = {}
+local fromMapPid = {}
+local pidMapHost = {}
 
 local fromMapKcp = {}
 
-local function getKcp(from,host)
+local funcT = {}
+
+function funcT.updatePidFrom(from,id)
+	fromMapPid[from] = id
+end
+
+local function getKcp(from,from)
     local session = 1048
 	local kcp = fromMapKcp[from]
 	if kcp == nil then
@@ -25,43 +32,47 @@ local function getKcp(from,host)
 			end
 		end)
 	end
-	local pid = hostMapPid[host] or 0
+	local pid = fromMapPid[from] or 0
 	return kcp,pid
 end
 
+
+function funcT.recCmd( strData,from,host)
+	local kcp,pid = getKcp(from,from)
+	kcp:lkcp_input(strData)
+
+	local hrlen, hr = kcp:lkcp_recv()
+	if hrlen > 0 then
+		local b1,b2 = string.byte(hr,1,2)
+		local sprotoId = (b1 << 8) | b2
+		local protostr = protoT[sprotoId]
+		if protostr ~= nil then
+			local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
+			local protoM = require("game/cmd/cmd_"..protostr)
+			local errInt,retProtoId,retP = protoM.recCmd(protoVO,pid,from)
+			local retProtoName = protoT[retProtoId]
+			local msg
+			if errInt == 0 then
+				msg = sp:encode(retProtoName,retP)
+			else
+				retProtoId = 30001
+				msg = sp:encode("ErrorR",{code=errInt})
+			end
+			local rb1 = (retProtoId >> 8 )& 0xff
+			local rb2 = (retProtoId )& 0xff
+			local retStr = string.char(rb1,rb2)
+			retStr = retStr.. msg
+			kcp:lkcp_send(retStr)
+		end
+	end
+end
 
 skynet.start(function()
 
 	local sp = sprotoloader.load(1)
 
-	skynet.dispatch("lua",function(_,_,strData,from,host)
-		local kcp,pid = getKcp(from,host)
-		kcp:lkcp_input(strData)
-
-		local hrlen, hr = kcp:lkcp_recv()
-		if hrlen > 0 then
-			local b1,b2 = string.byte(hr,1,2)
-			local sprotoId = (b1 << 8) | b2
-			local protostr = protoT[sprotoId]
-			if protostr ~= nil then
-				local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
-				local protoM = require("game/cmd/cmd_"..protostr)
-				local errInt,retProtoId,retP = protoM.recCmd(protoVO,pid)
-				local retProtoName = protoT[retProtoId]
-				local msg
-				if errInt == 0 then
-					msg = sp:encode(retProtoName,retP)
-				else
-					retProtoId = 30001
-					msg = sp:encode("ErrorR",{code=errInt})
-				end
-				local rb1 = (retProtoId >> 8 )& 0xff
-				local rb2 = (retProtoId )& 0xff
-				local retStr = string.char(rb1,rb2)
-				retStr = retStr.. msg
-				kcp:lkcp_send(retStr)
-			end
-		end
-
+	skynet.dispatch("lua",function(_,_,funcName,...)
+		local f = assert(funcT[funcName],"func not found: "..funcName)
+		skynet.retpack(f(...))
 	end)
 end)
