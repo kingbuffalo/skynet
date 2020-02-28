@@ -25,7 +25,8 @@
 
 #31001 
 .MatchP{
-	matchPlayerList 0 : *MatchPlayer
+	teamer 0 : *MatchPlayer
+	oppos 1 : *MatchPlayer
 }
 
 #31002

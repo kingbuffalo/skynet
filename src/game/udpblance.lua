@@ -4,17 +4,39 @@ local LKcp = require "lkcp"
 local protoT = require "game/sprotocfg/protoT"
 local sprotoloader = require "sprotoloader"
 local fromMapPid = {}
-local pidMapHost = {}
+local pidMapFrom = {}
 
 local fromMapKcp = {}
 
 local funcT = {}
 
-function funcT.updatePidFrom(from,id)
-	fromMapPid[from] = id
+function funcT.updatePidFrom(from,pid)
+	fromMapPid[from] = pid
+	pidMapFrom[pid] = from
 end
 
-local function getKcp(from,from)
+function funcT.pushMsg(pid,sMsgType,tMsg)
+	local from = pidMapFrom[pid]
+	if from == nil then
+		skynet.error("pid not found",pid)
+	end
+	local kcp = fromMapKcp[from]
+	if kcp == nil then
+		skynet.error("kcp not found",pid)
+	end
+
+	local protoId = protoT[sMsgType]
+	if protoId == nil then assert(false,"sMsgType not found,sMsgType="..sMsgType) end
+	local sp = sprotoloader.load(1)
+	local msg = sp:encode(sMsgType,tMsg)
+	local rb1 = (protoId>> 8 )& 0xff
+	local rb2 = (protoId)& 0xff
+	local retStr = string.char(rb1,rb2)
+	retStr = retStr.. msg
+	kcp:lkcp_send(retStr)
+end
+
+local function getKcp(from,host)
     local session = 1048
 	local kcp = fromMapKcp[from]
 	if kcp == nil then
@@ -37,8 +59,8 @@ local function getKcp(from,from)
 end
 
 
-function funcT.recCmd( strData,from,host)
-	local kcp,pid = getKcp(from,from)
+function funcT.recCmd(strData,from,host)
+	local kcp,pid = getKcp(from,host)
 	kcp:lkcp_input(strData)
 
 	local hrlen, hr = kcp:lkcp_recv()
@@ -47,10 +69,11 @@ function funcT.recCmd( strData,from,host)
 		local sprotoId = (b1 << 8) | b2
 		local protostr = protoT[sprotoId]
 		if protostr ~= nil then
+			local sp = sprotoloader.load(1)
 			local protoVO = sp:decode(protostr,string.sub(hr,3,#hr))
 			local protoM = require("game/cmd/cmd_"..protostr)
-			local errInt,retProtoId,retP = protoM.recCmd(protoVO,pid,from)
-			local retProtoName = protoT[retProtoId]
+			local errInt,retProtoName,retP = protoM.recCmd(protoVO,pid,from)
+			local retProtoId = protoT[retProtoName]
 			local msg
 			if errInt == 0 then
 				msg = sp:encode(retProtoName,retP)
@@ -68,9 +91,6 @@ function funcT.recCmd( strData,from,host)
 end
 
 skynet.start(function()
-
-	local sp = sprotoloader.load(1)
-
 	skynet.dispatch("lua",function(_,_,funcName,...)
 		local f = assert(funcT[funcName],"func not found: "..funcName)
 		skynet.retpack(f(...))

@@ -1,5 +1,6 @@
 local M = {}
 local setmetatable = setmetatable
+local keyInc = 1
 
 local function getLRUNode(self,key)
 	local vo = self._idMapLRUNode[key]
@@ -58,7 +59,7 @@ local function rmValue(self,key)
 end
 
 local function addValue(self,value,key)
-	local room_db = require("db_oper/room_db")
+	if key == nil then key = keyInc;keyInc=keyInc+1 end
 	local vo = {value=value,key=key,timestamp=os.time()}
 	if self._head == nil then
 		self._head = vo
@@ -95,9 +96,14 @@ local function getLen(self)
 	return self._len
 end
 
-local LRUList = { getValue=getValue,rmValue=rmValue,addValue=addValue,getLRUNode=getLRUNode,getLen=getLen,
-	setRoomIdGenerator=setRoomIdGenerator,
-rangeReverse=rangeReverse,range=range}
+local LRUList = { getValue=getValue,
+	rmValue=rmValue,
+	addValue=addValue,
+	getLRUNode=getLRUNode,
+	getLen=getLen,
+	rangeReverse=rangeReverse,
+	range=range}
+
 LRUList.__index = LRUList
 
 function M.createLRUList()
@@ -105,8 +111,6 @@ function M.createLRUList()
 	--tail
 	--idMapLRUNode --key id  LRUNode:{key=key,value=value,timestamp=timestamp,next=nil,prev=nil}
 	--incIntKeyId
-	local roomId_generator = require("rooms.roomId_generator")
-	local idGenerator = roomId_generator.createIdGenerator()
 	local fll = {_idMapLRUNode={},_head=nil,_tail=nil,_len=0}
 	setmetatable(fll,LRUList)
 	return fll

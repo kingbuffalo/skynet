@@ -1,7 +1,8 @@
 local M = {}
+local udpd
 
-function M.recCmd(protoVO,pid)
-	local _ = pid
+function M.recCmd(protoVO,pidUslessParam,from)
+	local _ = pidUslessParam
 	local name = protoVO.name
 	local passwd = protoVO.passwd
 	local dbUserTbl = require("game/db/dbUserTbl")
@@ -12,7 +13,13 @@ function M.recCmd(protoVO,pid)
 		userT = dbUserTbl.NewUser(maxPid,name,passwd)
 	end
 
-	return 0,20001,{pid=userT.pid}
+	local skynet = require "skynet"
+	if udpd == nil then
+		udpd = skynet.queryservice("game/udpd")
+	end
+	skynet.send(udpd,"lua","updatePidFrom",from,userT.pid)
+
+	return 0,"LoginR",{pid=userT.pid}
 end
 
 return M

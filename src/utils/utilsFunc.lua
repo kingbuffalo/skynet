@@ -170,4 +170,34 @@ function M.utf82_ascii1_sub(str, startChar, numChars)
 	end
 	return str:sub(startIndex, currentIndex - 1)
 end
+
+--如果没有找到，则找到比cmpFunc最小的那个的位置数
+function M.bSearch(arr,cmpFunc)
+	local left = 1
+	local right = #arr
+	local mid = (left+right)//2
+	while(left <= right) do
+		mid = (left+right)//2
+		local cmpRet = cmpFunc(arr[mid])
+		if cmpRet == -1 then
+			left = mid + 1
+		elseif cmpRet == 1 then
+			right = mid - 1
+		else
+			return mid
+		end
+	end
+	return mid
+end
+
+function M.forEver(timeout,func)
+	local skynet = require("skynet")
+	skynet.timeout(timeout,function()
+		func()
+		skynet.timeout(timeout,function()
+			func()
+		end)
+	end)
+end
+
 return M

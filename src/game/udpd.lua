@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 
---TODO 
+--TODO
 --1. balance done
 --2. heart beat
 --3. close while not respond
@@ -10,8 +10,12 @@ local socket = require "skynet.socket"
 --
 local funcT = {}
 
-function funcT.updatePidFrom(from,forwardAddr,id)
-	skynet.send(forwardAddr,"lua","updatePidFrom",from,id)
+function funcT.updatePidFrom(forwardAddr,from,pid)
+	skynet.send(forwardAddr,"lua","updatePidFrom",from,pid)
+end
+
+function funcT.pushMsg(forwardAddr,pid,msg)
+	skynet.send(forwardAddr,"lua","pushMsg",pid,msg)
 end
 
 skynet.start(function()
@@ -28,7 +32,7 @@ skynet.start(function()
 		local f = assert(funcT[funcName],"func not found: "..funcName)
 		local svrIdx = hostMapBlance[from] or 0
 		if svrIdx ~= 0 then
-			skynet.retpack(f(from,blanceSvr[svrIdx]...))
+			skynet.retpack(f(blanceSvr[svrIdx],from,...))
 		end
 	end)
 
@@ -43,6 +47,6 @@ skynet.start(function()
 				stepIdx = 1
 			end
 		end
-		skynet.send(blanceSvr[svrIdx],"lua","recCmd",strData,from,host)
+		skynet.send(blanceSvr[svrIdx],"lua","recCmd",str,from,host)
 	end , udpSvr, 8765)	-- bind an address
 end)

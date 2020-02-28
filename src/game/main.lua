@@ -26,7 +26,7 @@ skynet.start(function()
 	sprotoloader.save(proto, 1)
 
 
-	local port = skynet.getenv("port")
+	--local port = skynet.getenv("port")
 	--skynet.uniqueservice("game/gated",port)
 	skynet.uniqueservice("game/udpd")
 	skynet.uniqueservice("utils/db/ssdbd")
