@@ -4,6 +4,7 @@ local utilsFunc = require("utils/utilsFunc")
 local lru_list = require("lru_list")
 
 local udpd
+local roomMgr
 
 local funcT = {}
 
@@ -71,8 +72,12 @@ local function match(tPidScore,teamType)
 	end
 end
 
-function funcT.match(pid,score,teamType)
-	match({pid=pid,score=score},teamType)
+function funcT.match(pid,score,otherPlayerInfo,teamType)
+	local t = {pid=pid,score=score}
+	for k,v in pairs(otherPlayerInfo) do
+		t[k] = v
+	end
+	match(t,teamType)
 end
 
 function funcT.clientRespondMatchAck(pid)
@@ -81,9 +86,13 @@ function funcT.clientRespondMatchAck(pid)
 	ackIngInfo.ack = ackIngInfo.ack + 1
 	if ackIngInfo.ack >= ackIngInfo.max then
 		if ackIngInfo.oppoInfo.ack >= ackIngInfo.oppoInfo.max then
-			local _ = 1
-			--TODO
-			--create room
+			for _,v in ipairs(ackIngInfo.arr) do
+				ackIngMapPidArr[v.pid] = nil
+			end
+			for _,v in ipairs(ackIngInfo.oppoInfo.arr) do
+				ackIngMapPidArr[v.pid] = nil
+			end
+			skynet.send(roomMgr,"lua","createRoom",ackIngInfo,ackIngInfo.oppoInfo)
 		end
 	end
 	return 0
@@ -104,6 +113,7 @@ local function checkOutofLineAck()
 					if ackIng.ackPidMap1[pid] ~= nil then
 						match(v,ackIng[idx].teamType)
 					end
+					ackIngMapPidArr[pid] = nil
 				end
 			end
 			ackIngLruList:rmValue(key)
