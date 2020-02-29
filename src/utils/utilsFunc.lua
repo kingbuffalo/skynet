@@ -190,14 +190,13 @@ function M.bSearch(arr,cmpFunc)
 	return mid
 end
 
-function M.forEver(timeout,func)
-	local skynet = require("skynet")
-	skynet.timeout(timeout,function()
-		func()
-		skynet.timeout(timeout,function()
-			func()
-		end)
-	end)
+function M.forEver(timeout,func,...)
+	local function f(...)
+		local skynet = require "skynet"
+		skynet.timeout(timeout,f)
+		func(...)
+	end
+	f(...)
 end
 
 return M

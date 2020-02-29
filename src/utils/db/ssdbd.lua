@@ -8,7 +8,7 @@ local conf = { host = "127.0.0.1", port = 8888, auth = "kingbuffalo" }
 local SERVICENAME = "SSDB"
 
 skynet.start(function()
-	local db = ssdb.connect(conf)
+	db = ssdb.connect(conf)
 	skynet.register(SERVICENAME)
 	skynet.dispatch("lua", function (_, _, cmd, ...)
 		if cmd == "CLOSE" then

@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 local errorcode = require("game/sprotocfg/errorcode")
 local utilsFunc = require("utils/utilsFunc")
-local lru_list = require("lru_list")
+local lru_list = require("zjutils/lru_list")
 
 local udpd
 local roomMgr
@@ -92,6 +92,11 @@ function funcT.clientRespondMatchAck(pid)
 			for _,v in ipairs(ackIngInfo.oppoInfo.arr) do
 				ackIngMapPidArr[v.pid] = nil
 			end
+
+			if roomMgr == nil then
+				roomMgr = skynet.queryservice("game/room/roomMgr")
+			end
+
 			skynet.send(roomMgr,"lua","createRoom",ackIngInfo,ackIngInfo.oppoInfo)
 		end
 	end

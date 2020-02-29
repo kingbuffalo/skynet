@@ -30,6 +30,8 @@ skynet.start(function()
 	--skynet.uniqueservice("game/gated",port)
 	skynet.uniqueservice("game/udpd")
 	skynet.uniqueservice("utils/db/ssdbd")
+	skynet.uniqueservice("game/room/roomMgr")
+	skynet.uniqueservice("zj/cachedb")
 	skynet.newservice("debug_console",8000)
 	--skynet.newservice("game/kcplibtest")
 
