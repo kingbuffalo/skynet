@@ -1,7 +1,6 @@
 local skynet = require "skynet"
+local udp_util =  require("game/kcpudp/udp_util")
 --local cachedb_util = require("zj/cachedb_util")
-
-local udpd
 
 local funcT = {}
 local teamT = {}
@@ -25,13 +24,9 @@ function funcT.createRoom(ackIngInfo1,ackIngInfo2)
 end
 
 function funcT.brocastCmd(sMsg,tMsg)
-	if udpd == nil then
-		udpd = skynet.queryservice("game/udpd")
-	end
-
 	for _,team in pairs(teamT) do
 		for _,v in team.arr do
-			skynet.send(udpd,"lua","pushMsg",v.pid,sMsg,tMsg)
+			udp_util.pushMsg(v.pid,sMsg,tMsg)
 		end
 	end
 end

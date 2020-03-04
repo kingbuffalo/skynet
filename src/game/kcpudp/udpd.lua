@@ -9,9 +9,12 @@ local socket = require "skynet.socket"
 --
 --
 local funcT = {}
+local hostMapBlance = {}
+local pidMapAddr = {}
 
 function funcT.updatePidFrom(forwardAddr,from,pid)
 	skynet.send(forwardAddr,"lua","updatePidFrom",from,pid)
+	pidMapAddr[pid] = forwardAddr
 end
 
 function funcT.pushMsg(forwardAddr,pid,msg)
@@ -22,17 +25,22 @@ skynet.start(function()
 	local blanceCount = 8
 	local blanceSvr = {}
 	local udpSvr = "0.0.0.0"
-	local hostMapBlance = {}
 	local host
 	for i=1,blanceCount,1 do
-		blanceSvr[i] = skynet.newservice("game/udpblance")
+		blanceSvr[i] = skynet.newservice("game/kcpudp/udpblance")
 	end
 
-	skynet.dispatch("lua",function(_,_,funcName,from,...)
+	skynet.dispatch("lua",function(_,_,funcName,...)
 		local f = assert(funcT[funcName],"func not found: "..funcName)
-		local svrIdx = hostMapBlance[from] or 0
+		local from,pid = ...
+		local svrIdx
+		if #from == 0 then
+			svrIdx = pidMapAddr[pid] or 0
+		else
+			svrIdx = hostMapBlance[from] or 0
+		end
 		if svrIdx ~= 0 then
-			skynet.retpack(f(blanceSvr[svrIdx],from,...))
+			skynet.retpack(f(blanceSvr[svrIdx],...))
 		end
 	end)
 

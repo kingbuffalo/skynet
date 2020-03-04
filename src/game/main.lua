@@ -28,7 +28,7 @@ skynet.start(function()
 
 	--local port = skynet.getenv("port")
 	--skynet.uniqueservice("game/gated",port)
-	skynet.uniqueservice("game/udpd")
+	skynet.uniqueservice("game/kcpudp/udpd")
 	skynet.uniqueservice("utils/db/ssdbd")
 	skynet.uniqueservice("game/room/roomMgr")
 	skynet.uniqueservice("zj/cachedb")
