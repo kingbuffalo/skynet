@@ -33,6 +33,7 @@ skynet.start(function()
 	skynet.uniqueservice("game/room/roomMgr")
 	skynet.uniqueservice("zj/cachedb")
 	skynet.newservice("debug_console",8000)
+	skynet.newservice("game/cfgmgr/cfgInit")
 	--skynet.newservice("game/kcplibtest")
 
 	--local configMgr = require("game.config.configMgr")
