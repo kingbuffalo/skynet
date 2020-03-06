@@ -1,14 +1,30 @@
 local skynet = require "skynet"
 local sharetable = require "skynet.sharetable"
 
---local funcT = {}
---local nameMapAddrT = {}
+local funcT = {}
+local tAddrMap1 = {}
 
---function funcT.nameMapAddr(name,addr)
-	--local arr = nameMapAddrT[name] or {}
-	--arr[addr] = 1
-	--nameMapAddrT[name] = arr
---end
+function funcT.registUseCfgAddr(addr)
+	if addr ~= skynet.self() then
+		tAddrMap1[addr] = 1
+	end
+end
+
+function funcT.unRegistUseCfgAddr(addr)
+	tAddrMap1[addr] = nil
+end
+
+function funcT.updateCfg(cfgName)
+	local t = require("src/game/cfg/"..cfgName)
+	local mgr = require("src/game/cfg/"..cfgName.."_mgr")
+	t = mgr.InitData(t)
+	sharetable.loadtable(cfgName,t)
+
+	for addr,_ in pairs(tAddrMap1) do
+		skynet.send(addr,"lua","updateCfg",cfgName)
+	end
+end
+
 
 skynet.start(function()
 	local tblArr = {
@@ -21,8 +37,8 @@ skynet.start(function()
 		sharetable.loadtable(v,t)
 	end
 
-	--skynet.dispatch("lua", function(_,_,funcName,...)
-		--local f = assert(funcT[funcName],"function not found " .. funcName)
-		--skynet.ret(skynet.pack(f(...)))
-	--end)
+	skynet.dispatch("lua", function(_,_,funcName,...)
+		local f = assert(funcT[funcName],"function not found " .. funcName)
+		skynet.ret(skynet.pack(f(...)))
+	end)
 end)
