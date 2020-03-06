@@ -28,12 +28,12 @@ skynet.start(function()
 
 	--local port = skynet.getenv("port")
 	--skynet.uniqueservice("game/gated",port)
+	skynet.uniqueservice("game/cfgmgr/cfgInit")
 	skynet.uniqueservice("game/kcpudp/udpd")
 	skynet.uniqueservice("utils/db/ssdbd")
 	skynet.uniqueservice("game/room/roomMgr")
 	skynet.uniqueservice("zj/cachedb")
 	skynet.newservice("debug_console",8000)
-	skynet.newservice("game/cfgmgr/cfgInit")
 	--skynet.newservice("game/kcplibtest")
 
 	--local configMgr = require("game.config.configMgr")
