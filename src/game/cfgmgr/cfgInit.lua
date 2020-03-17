@@ -15,9 +15,9 @@ function funcT.unRegistUseCfgAddr(addr)
 end
 
 function funcT.updateCfg(cfgName)
-	local t = require("src/game/cfg/"..cfgName)
-	local mgr = require("src/game/cfg/"..cfgName.."_mgr")
-	t = mgr.InitData(t)
+	local t = require("game/cfg/"..cfgName)
+	local mgr = require("game/cfgmgr/"..cfgName.."_mgr")
+	t = mgr.InitData(cfgName,t)
 	sharetable.loadtable(cfgName,t)
 
 	for addr,_ in pairs(tAddrMap1) do
@@ -31,9 +31,9 @@ skynet.start(function()
 		"cfg_item"
 	}
 	for _,v in ipairs(tblArr) do
-		local t = require("src/game/cfg/"..v)
-		local mgr = require("src/game/cfg/"..v.."_mgr")
-		t = mgr.InitData(t)
+		local t = require("game/cfg/"..v)
+		local mgr = require("game/cfgmgr/"..v.."_mgr")
+		t = mgr.InitData(v,t)
 		sharetable.loadtable(v,t)
 	end
 
