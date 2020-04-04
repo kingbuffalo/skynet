@@ -97,10 +97,13 @@ function funcT.recCmdJson(strData,from,host)
 
 	local hrlen, hr = kcp:lkcp_recv()
 	if hrlen > 0 then
-		local xxx = 1
+		local xxx = 0
 		if xxx == 0 then
-			local t = json.encode(hr)
+			skynet.error("rec",hr)
+			local t = json.decode(hr)
 			local protostr = t.cmd
+			local serpent = require("serpent")
+			skynet.error(serpent.dump(t))
 			local protoM = require("game/cmd/cmd_"..protostr)
 			local errInt,retProtoName,retP = protoM.recCmd(t,pid,from)
 			if errInt == 0 then
@@ -109,8 +112,9 @@ function funcT.recCmdJson(strData,from,host)
 				retP.cmd = "ErrorR"
 				retP.code = errInt
 			end
-			local sendStr = json.deocde(retP)
+			local sendStr = json.encode(retP)
 			kcp:lkcp_send(sendStr)
+			skynet.error("send",sendStr)
 		else
 			skynet.error("json.........",hr)
 			local t = json.encode(hr)
