@@ -55,6 +55,7 @@ skynet.start(function()
 				stepIdx = 1
 			end
 		end
-		skynet.send(blanceSvr[svrIdx],"lua","recCmd",str,from,host)
+		--skynet.send(blanceSvr[svrIdx],"lua","recCmd",str,from,host)
+		skynet.send(blanceSvr[svrIdx],"lua","recCmdJson",str,from,host)
 	end , udpSvr, 8765)	-- bind an address
 end)

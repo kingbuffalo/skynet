@@ -19,13 +19,11 @@ end
 
 function M.getUser(uid)
 	local key = getUserInfoKey(uid)
-	local ssdbutils = require("utils.db.ssdbutils")
 	local t = ssdbutils.execute("gets",key)
 	return t
 end
 
 function M.setUser(userInfo)
-	local ssdbutils = require("utils.db.ssdbutils")
 	local key = getUserInfoKey(userInfo.uid)
 	ssdbutils.sendExecute("sets",key,userInfo)
 end

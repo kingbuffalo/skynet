@@ -1,7 +1,7 @@
 local M = {
 	Mask = {
 		PlayerTbl = 0x1,
-	}
+	},
 	AllBitLen = 1,
 }
 
@@ -9,7 +9,7 @@ local M = {
 function M.getAllMask()
 	if M._allMask == nil then
 		M._allMask = 0
-		for k,v in pairs(M.Mask) do
+		for _,v in pairs(M.Mask) do
 			M._allMask = M._allMask | v
 		end
 	end

@@ -3,6 +3,7 @@ local socket = require "skynet.socket"
 local LKcp = require "lkcp"
 local protoT = require "game/sprotocfg/protoT"
 local sprotoloader = require "sprotoloader"
+local json = require "utils/json"
 local fromMapPid = {}
 local pidMapFrom = {}
 
@@ -89,6 +90,40 @@ function funcT.recCmd(strData,from,host)
 		end
 	end
 end
+
+function funcT.recCmdJson(strData,from,host)
+	local kcp,pid = getKcp(from,host)
+	kcp:lkcp_input(strData)
+
+	local hrlen, hr = kcp:lkcp_recv()
+	if hrlen > 0 then
+		local xxx = 0
+		if xxx == 0 then
+			skynet.error("rec",hr)
+			local t = json.decode(hr)
+			local protostr = t.cmd
+			local serpent = require("serpent")
+			skynet.error(serpent.dump(t))
+			local protoM = require("game/cmd/cmd_"..protostr)
+			local errInt,retProtoName,retP = protoM.recCmd(t,pid,from)
+			if errInt == 0 then
+				retP.cmd = retProtoName
+			else
+				retP.cmd = "ErrorR"
+				retP.code = errInt
+			end
+			local sendStr = json.encode(retP)
+			kcp:lkcp_send(sendStr)
+			skynet.error("send",sendStr)
+		else
+			skynet.error("json.........",hr)
+			local t = json.encode(hr)
+			local sendStr = json.decode(t)
+			kcp:lkcp_send(sendStr)
+		end
+	end
+end
+
 
 skynet.start(function()
 	skynet.dispatch("lua",function(_,_,funcName,...)
