@@ -17,7 +17,7 @@ skynet.start(function()
 	for _,v in ipairs(tblArr) do
 		local t = require("src/game/cfg/"..v)
 		local mgr = require("src/game/cfg/"..v.."_mgr")
-		t = mgr.InitData(t)
+		t = mgr.InitData(v,t)
 		sharetable.loadtable(v,t)
 	end
 
