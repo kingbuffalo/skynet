@@ -396,6 +396,14 @@ append_one(struct bson *bs, lua_State *L, const char *key, size_t sz, int depth)
 			case BSON_MAXKEY:
 			case BSON_NULL:
 				break;
+			case BSON_INT64: {
+				if (len != 2 + 8) {
+					luaL_error(L, "Invalid int64");
+				}
+				const int64_t * v = (const int64_t *)(str + 2);
+				write_int64(bs, *v);
+				break;
+			}
 			default:
 				luaL_error(L,"Invalid subtype %d", subt);
 			}
@@ -831,7 +839,7 @@ lmakeindex(lua_State *L) {
 			lua_rawset(L,-3);
 		}
 	}
-	lua_setuservalue(L,1);
+	lua_setiuservalue(L,1,1);
 	lua_settop(L,1);
 
 	return 1;
@@ -875,7 +883,7 @@ replace_object(lua_State *L, int type, struct bson * bs) {
 
 static int
 lreplace(lua_State *L) {
-	lua_getuservalue(L,1);
+	lua_getiuservalue(L,1,1);
 	if (!lua_istable(L,-1)) {
 		return luaL_error(L, "call makeindex first");
 	}
@@ -985,7 +993,7 @@ encode_bson(lua_State *L) {
 	} else {
 		pack_simple_dict(L, b, 0);
 	}
-	void * ud = lua_newuserdata(L, b->size);
+	void * ud = lua_newuserdatauv(L, b->size, 1);
 	memcpy(ud, b->ptr, b->size);
 	return 1;
 }
@@ -1015,7 +1023,7 @@ encode_bson_byorder(lua_State *L) {
 	lua_settop(L, --n);
 	pack_ordered_dict(L, b, n, 0);
 	lua_settop(L,0);
-	void * ud = lua_newuserdata(L, b->size);
+	void * ud = lua_newuserdatauv(L, b->size, 1);
 	memcpy(ud, b->ptr, b->size);
 	return 1;
 }
@@ -1048,6 +1056,19 @@ ldate(lua_State *L) {
 	luaL_buffinit(L, &b);
 	luaL_addchar(&b, 0);
 	luaL_addchar(&b, BSON_DATE);
+	luaL_addlstring(&b, (const char *)&d, sizeof(d));
+	luaL_pushresult(&b);
+
+	return 1;
+}
+
+static int
+lint64(lua_State *L) {
+	int64_t d = luaL_checkinteger(L, 1);
+	luaL_Buffer b;
+	luaL_buffinit(L, &b);
+	luaL_addchar(&b, 0);
+	luaL_addchar(&b, BSON_INT64);
 	luaL_addlstring(&b, (const char *)&d, sizeof(d));
 	luaL_pushresult(&b);
 
@@ -1184,9 +1205,18 @@ lsubtype(lua_State *L, int subtype, const uint8_t * buf, size_t sz) {
 	case BSON_DBPOINTER:
 	case BSON_SYMBOL:
 	case BSON_CODEWS:
-		lua_pushvalue(L, lua_upvalueindex(13));
+		lua_pushvalue(L, lua_upvalueindex(14));
 		lua_pushlstring(L, (const char *)buf, sz);
 		return 2;
+	case BSON_INT64: {
+		if (sz != 8) {
+			return luaL_error(L, "Invalid int64");
+		}
+		int64_t d = *(const int64_t *)buf;
+		lua_pushvalue(L, lua_upvalueindex(13));
+		lua_pushinteger(L, d);
+		return 2;
+	}
 	default:
 		return luaL_error(L, "Invalid subtype %d", subtype);
 	}
@@ -1242,7 +1272,8 @@ typeclosure(lua_State *L) {
 		"regex",	// 10
 		"minkey",	// 11
 		"maxkey",	// 12
-		"unsupported", // 13
+		"int64",	// 13
+		"unsupported", // 14
 	};
 	int i;
 	int n = sizeof(typename)/sizeof(typename[0]);
@@ -1253,11 +1284,11 @@ typeclosure(lua_State *L) {
 }
 
 static uint8_t oid_header[5];
-static uint32_t oid_counter;
+static ATOM_ULONG oid_counter;
 
 static void
 init_oid_header() {
-	if (oid_counter) {
+	if (ATOM_LOAD(&oid_counter)) {
 		// already init
 		return;
 	}
@@ -1277,11 +1308,11 @@ init_oid_header() {
 	oid_header[3] = pid & 0xff;
 	oid_header[4] = (pid >> 8) & 0xff;
 	
-	uint32_t c = h ^ time(NULL) ^ (uintptr_t)&h;
+	unsigned long c = h ^ time(NULL) ^ (uintptr_t)&h;
 	if (c == 0) {
 		c = 1;
 	}
-	oid_counter = c;
+	ATOM_STORE(&oid_counter, c);
 }
 
 static inline int
@@ -1344,6 +1375,7 @@ luaopen_bson(lua_State *L) {
 		{ "regex", lregex },
 		{ "binary", lbinary },
 		{ "objectid", lobjectid },
+		{ "int64", lint64 },
 		{ "decode", ldecode },
 		{ "decodestr", ldecodestr },
 		{ NULL,  NULL },

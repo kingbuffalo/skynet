@@ -43,7 +43,7 @@ local function write_handshake(self, host, url, header)
     local recvheader = {}
     local code, body = internal.request(self, "GET", host, url, recvheader, request_header)
     if code ~= 101 then
-        error(string.format("websocket handshake error: code[%s] info:%s", code, body))    
+        error(string.format("websocket handshake error: code[%s] info:%s", code, body))
     end
 
     if not recvheader["upgrade"] or recvheader["upgrade"]:lower() ~= "websocket" then
@@ -67,26 +67,32 @@ local function write_handshake(self, host, url, header)
 end
 
 
-local function read_handshake(self)
-    local tmpline = {}
-    local header_body = internal.recvheader(self.read, tmpline, "")
-    if not header_body then
-        return 413
+local function read_handshake(self, upgrade_ops)
+    local header, method, url
+    if upgrade_ops then
+        header, method, url = upgrade_ops.header, upgrade_ops.method, upgrade_ops.url
+    else
+        local tmpline = {}
+        local header_body = internal.recvheader(self.read, tmpline, "")
+        if not header_body then
+            return 413
+        end
+
+        local request = assert(tmpline[1])
+        local httpver
+        method, url, httpver = request:match "^(%a+)%s+(.-)%s+HTTP/([%d%.]+)$"
+        assert(method and url and httpver)
+        if method ~= "GET" then
+            return 400, "need GET method"
+        end
+
+        httpver = assert(tonumber(httpver))
+        if httpver < 1.1 then
+            return 505  -- HTTP Version not supported
+        end
+        header = internal.parseheader(tmpline, 2, {})
     end
 
-    local request = assert(tmpline[1])
-    local method, url, httpver = request:match "^(%a+)%s+(.-)%s+HTTP/([%d%.]+)$"
-    assert(method and url and httpver)
-    if method ~= "GET" then
-        return 400, "need GET method"
-    end
-
-    httpver = assert(tonumber(httpver))
-    if httpver < 1.1 then
-        return 505  -- HTTP Version not supported
-    end
-
-    local header = internal.parseheader(tmpline, 2, {})
     if not header then
         return 400  -- Bad request
     end
@@ -98,7 +104,7 @@ local function read_handshake(self)
         return 400, "host Required"
     end
 
-    if not header["connection"] or header["connection"]:lower() ~= "upgrade" then
+    if not header["connection"] or not header["connection"]:lower():find("upgrade", 1,true) then
         return 400, "Connection must Upgrade"
     end
 
@@ -239,20 +245,23 @@ local function read_frame(self)
 end
 
 
-local function resolve_accept(self)
+local function resolve_accept(self, options)
     try_handle(self, "connect")
-    local code, err, url = read_handshake(self)
+    local code, err, url = read_handshake(self, options and options.upgrade)
     if code then
         local ok, s = httpd.write_response(self.write, code, err)
         if not ok then
             error(s)
         end
+        try_handle(self, "close")
+        return
     end
 
     local header = err
     try_handle(self, "handshake", header, url)
     local recv_count = 0
     local recv_buf = {}
+    local first_op
     while true do
         if _isws_closed(self.id) then
             try_handle(self, "close")
@@ -265,24 +274,26 @@ local function resolve_accept(self)
             try_handle(self, "close", code, reason)
             break
         elseif op == "ping" then
-            write_frame(self, "pong")
+            write_frame(self, "pong", payload_data)
             try_handle(self, "ping")
         elseif op == "pong" then
             try_handle(self, "pong")
         else
             if fin and #recv_buf == 0 then
-                try_handle(self, "message", payload_data)
+                try_handle(self, "message", payload_data, op)
             else
                 recv_buf[#recv_buf+1] = payload_data
                 recv_count = recv_count + #payload_data
                 if recv_count > MAX_FRAME_SIZE then
                     error("payload_len is too large")
                 end
+                first_op = first_op or op
                 if fin then
                     local s = table.concat(recv_buf)
-                    try_handle(self, "message", s)
+                    try_handle(self, "message", s, first_op)
                     recv_buf = {}  -- clear recv_buf
                     recv_count = 0
+                    first_op = nil
                 end
             end
         end
@@ -315,7 +326,7 @@ local function _new_client_ws(socket_id, protocol)
             websocket = true,
             close = function ()
                 socket.close(socket_id)
-                tls.closefunc(tls_ctx)() 
+                tls.closefunc(tls_ctx)()
             end,
             read = tls.readfunc(socket_id, tls_ctx),
             write = tls.writefunc(socket_id, tls_ctx),
@@ -361,7 +372,7 @@ local function _new_server_ws(socket_id, handle, protocol)
         obj = {
             close = function ()
                 socket.close(socket_id)
-                tls.closefunc(tls_ctx)() 
+                tls.closefunc(tls_ctx)()
             end,
             read = tls.readfunc(socket_id, tls_ctx),
             write = tls.writefunc(socket_id, tls_ctx),
@@ -382,8 +393,10 @@ end
 
 -- handle interface
 -- connect / handshake / message / ping / pong / close / error
-function M.accept(socket_id, handle, protocol, addr)
-    socket.start(socket_id)
+function M.accept(socket_id, handle, protocol, addr, options)
+    if not (options and options.upgrade) then
+        socket.start(socket_id)
+    end
     protocol = protocol or "ws"
     local ws_obj = _new_server_ws(socket_id, handle, protocol)
     ws_obj.addr = addr
@@ -394,7 +407,7 @@ function M.accept(socket_id, handle, protocol, addr)
         end)
     end
 
-    local ok, err = xpcall(resolve_accept, debug.traceback, ws_obj)
+    local ok, err = xpcall(resolve_accept, debug.traceback, ws_obj, options)
     local closed = _isws_closed(socket_id)
     if not closed then
         _close_websocket(ws_obj)
@@ -420,7 +433,7 @@ function M.connect(url, header, timeout)
     if protocol ~= "wss" and protocol ~= "ws" then
         error(string.format("invalid protocol: %s", protocol))
     end
-    
+
     assert(host)
     local host_name, host_port = string.match(host, "^([^:]+):?(%d*)$")
     assert(host_name and host_port)
@@ -446,7 +459,7 @@ function M.read(id)
             _close_websocket(ws_obj)
             return false, payload_data
         elseif op == "ping" then
-            write_frame(ws_obj, "pong")
+            write_frame(ws_obj, "pong", payload_data)
         elseif op ~= "pong" then  -- op is frame, text binary
             if fin and not recv_buf then
                 return payload_data
@@ -460,7 +473,6 @@ function M.read(id)
             end
         end
     end
-    assert(false)
 end
 
 

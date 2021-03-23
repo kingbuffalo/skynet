@@ -14,6 +14,7 @@ struct logger {
 	FILE * handle;
 	char * filename;
 	char * origFn;
+	uint32_t starttime;
 	int close;
 	int mday;
 	time_t today0hour;
@@ -40,6 +41,18 @@ logger_release(struct logger * inst) {
 	skynet_free(inst->filename);
 	skynet_free(inst->origFn);
 	skynet_free(inst);
+}
+
+#define SIZETIMEFMT	250
+
+static int
+timestring(struct logger *inst, char tmp[SIZETIMEFMT]) {
+	uint64_t now = skynet_now();
+	time_t ti = now/100 + inst->starttime;
+	struct tm info;
+	(void)localtime_r(&ti,&info);
+	strftime(tmp, SIZETIMEFMT, "%D %T", &info);
+	return now % 100;
 }
 
 static int
@@ -83,12 +96,28 @@ logger_cb(struct skynet_context * context, void *ud, int type, int session, uint
 				fflush(inst->handle);
 			}
 			break;
+			/* 这个是云风写的，先屏蔽掉
+			   case PTYPE_TEXT:
+			   if (inst->filename) {
+			   char tmp[SIZETIMEFMT];
+			   int csec = timestring(ud, tmp);
+			   fprintf(inst->handle, "%s.%02d ", tmp, csec);
+			   }
+			   fprintf(inst->handle, "[:%08x] ", source);
+			   fwrite(msg, sz , 1, inst->handle);
+			   fprintf(inst->handle, "\n");
+			   fflush(inst->handle);
+			   break;
+			   >>>>>>> upstream/master
+			   */
 	}
 	return 0;
 }
 
 int
 logger_init(struct logger * inst, struct skynet_context *ctx, const char * parm) {
+	const char * r = skynet_command(ctx, "STARTTIME", NULL);
+	inst->starttime = strtoul(r, NULL, 10);
 	if (parm) {
 		inst->filename = skynet_malloc(strlen(parm)+1+DAY_STR_LEN);
 		inst->origFn = skynet_malloc(strlen(parm)+1);
@@ -106,6 +135,7 @@ logger_init(struct logger * inst, struct skynet_context *ctx, const char * parm)
 		inst->close = 1;
 
 		inst->handle = fopen(inst->filename,"a");
+		//inst->handle = fopen(parm,"a");
 		if (inst->handle == NULL) {
 			return 1;
 		}
