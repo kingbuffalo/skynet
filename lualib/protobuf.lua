@@ -499,18 +499,11 @@ function M.register(buffer)
 	c._env_register(P, buffer)
 end
 
-function M.register_file(filename,buffer)
-	local f = nil 
-	if buffer==nil then
-		--如果没有预先读取的话，现场读取
-		f = assert(io.open(filename , "rb"))
-		buffer = f:read "*a"
-	end
+function M.register_file(filename)
+	local f = assert(io.open(filename , "rb"))
+	local buffer = f:read "*a"
 	c._env_register(P, buffer)
-
-	if f then
-		f:close()
-	end
+	f:close()
 end
 
 function M.enum_id(enum_type, enum_name)

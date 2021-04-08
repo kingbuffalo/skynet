@@ -53,6 +53,7 @@ local XMODEMCRC16Lookup = {
 }
 
 return function(bytes)
+	do return 0 end
 	local crc = 0
 	for i=1,#bytes do
 		local b = string.byte(bytes,i,i)
