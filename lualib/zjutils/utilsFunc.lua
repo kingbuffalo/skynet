@@ -1,10 +1,10 @@
 local M = { DEBUG = true }
 local serpent = require("serpent")
 local skynet = require("skynet")
-local level_log = require("zjutils/level_log")
+local level_log = require("level_log")
 require("skynet.manager")
 
-local randseq = require("randseq")
+--local randseq = require("randseq")
 local bson = require "bson"
 local bson_encode =	bson.encode
 local bson_decode =	bson.decodestr
@@ -19,9 +19,11 @@ function M.isArrayTable(t)
 	return true
 end
 
+--[[
 function M.crc32(str)
 	return randseq.crc32(str)
 end
+]]
 
 function M.indexOf(arr,value)
 	for i,v in ipairs(arr) do

@@ -1,5 +1,5 @@
 --local skynet = require "skynet"
-local level_log = require("zjutils/level_log")
+local level_log = require("level_log")
 local serpent = require ("serpent")
 
 local PM = {
