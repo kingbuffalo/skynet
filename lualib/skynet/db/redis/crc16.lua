@@ -52,11 +52,13 @@ local XMODEMCRC16Lookup = {
 	0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0
 }
 
-return function(bytes)
-	do return 0 end
+return function(bytes,i,j)
+	i = i or 1
+	j = j or #bytes
 	local crc = 0
-	for i=1,#bytes do
-		local b = string.byte(bytes,i,i)
+	local byte=string.byte
+	for ii=i,j do
+		local b = byte(bytes,ii,ii)
 		crc = ((crc<<8) & 0xffff) ~ XMODEMCRC16Lookup[(((crc>>8)~b) & 0xff) + 1]
 	end
 	return tonumber(crc)
