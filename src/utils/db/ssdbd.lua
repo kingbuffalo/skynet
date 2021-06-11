@@ -3,11 +3,14 @@ require ("skynet.manager")
 local ssdb = require "skynet.db.ssdb"
 
 local db
-local conf = { host = "127.0.0.1", port = 8888, auth = "kingbuffalo" }
+
+local host,port,auth = ...
+port = tonumber(port)
 
 local SERVICENAME = "SSDB"
 
 skynet.start(function()
+	local conf = { host = host, port =port, auth = auth }
 	db = ssdb.connect(conf)
 	skynet.register(SERVICENAME)
 	skynet.dispatch("lua", function (_, _, cmd, ...)

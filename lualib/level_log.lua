@@ -1,4 +1,5 @@
 local M = {}
+local serpent = require("serpent")
 
 local LOG_LEVEL = {
 	FATAL = 1,
@@ -23,8 +24,18 @@ local function log(level,...)
 		_level = tonumber(_level)
 	end
 	if level <= _level then
+		local l = {...}
+		local sarr = {}
+		for _,v in ipairs(l) do
+			local s = v
+			if type(v) == "table" then
+				s = serpent.dump(v)
+			end
+			sarr[#sarr+1] = tostring(s)
+		end
+
 		local skynet = require("skynet")
-		skynet.error(LEVEL_TAG[level],...)
+		skynet.error(LEVEL_TAG[level],table.concat(sarr,"\t"))
 	end
 end
 

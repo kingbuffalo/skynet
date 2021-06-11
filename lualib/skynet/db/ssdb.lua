@@ -166,6 +166,11 @@ local function read_boolean(so)
 	return ok, result ~= 0
 end
 
+function command:hexists(key,key2)
+	local fd = self[1]
+	return fd:request(compose_message ("HEXISTS", key,key2), read_boolean)
+end
+
 function command:exists(key)
 	local fd = self[1]
 	return fd:request(compose_message ("EXISTS", key), read_boolean)

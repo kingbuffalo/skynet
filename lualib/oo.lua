@@ -4,7 +4,7 @@
 --_check.openFlag()
 
 --module("oo", package.seeall) --5.3不支持
-local tbl = {}
+local M = {}
 
 local classList = {}  --类列表
 local classBase = {}  --基类
@@ -44,7 +44,7 @@ local function new(clz, ...)
 	return obj
 end
 
-function tbl.class(super, name)
+function M.class(super, name)
 	local clz = {}
 	if type(name) == "string" then
 		local class_name = name..'__'
@@ -69,15 +69,15 @@ function tbl.class(super, name)
 	setmetatable(clz, {__index = super, __call = new})
 	return clz
 end
-function tbl.superclassof(clz)
+function M.superclassof(clz)
 	return rawget(clz, "__super")
 end
 
-function tbl.classof(ob)
+function M.classof(ob)
 	return getmetatable(ob).__index
 end
-function tbl.instanceof(ob, clz)
+function M.instanceof(ob, clz)
 	return ((ob.isa and ob:isa(clz)) == true)
 end
 
-return tbl
+return M

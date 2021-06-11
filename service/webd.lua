@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local level_log = require("zjutils/level_log")
+local level_log = require("level_log")
 local socket = require "skynet.socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
@@ -59,11 +59,11 @@ else
 skynet.start(function()
 	local agent = {}
 	for i= 1, 20 do
-		agent[i] = skynet.newservice("zj/webd", "agent",handlePath )
+		agent[i] = skynet.newservice("webd", "agent",handlePath )
 	end
 	local balance = 1
 	local port = tonumber(mode)
-	local http_ip_prefix = skynet.getenv("http_ip_prefix") or "192%.168%.1%."
+	local http_ip_prefix = skynet.getenv("http_ip_prefix") or ""
 	local listenId = socket.listen("0.0.0.0",port)
 	level_log.info("Listen web port:"..port)
 	socket.start(listenId, function(id, addr)
